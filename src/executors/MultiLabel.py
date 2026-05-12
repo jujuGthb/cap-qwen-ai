@@ -107,7 +107,6 @@ class MultiLabel(Capsule):
                     for d in detections
                     if d.get("class") or d.get("class_name")
                 ]
-                print(f"[MultiLabel] qwen_classes: {self.qwen_classes}")
                 
             except (json.JSONDecodeError, KeyError):
                 self.qwen_classes = []
