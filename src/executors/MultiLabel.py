@@ -91,13 +91,24 @@ class MultiLabel(Capsule):
                 raise ValueError("Qwen API returned empty content.")
 
             try:
+                import re
                 clean_text = self.qwen_text.strip()
                 if clean_text.startswith("```"):
                     clean_text = clean_text[clean_text.find("\n") + 1:]
                     clean_text = clean_text[:clean_text.rfind("```")].strip()
+                clean_text = re.sub(r'(?<!["\w])(\w+)(?=\s*:)', r'"\1"', clean_text)
                 parsed = json.loads(clean_text)
-                detections = parsed.get("predicted_classes", [])
-                self.qwen_classes = [d["class"] for d in detections if "class" in d]
+                if isinstance(parsed, list):
+                    detections = parsed
+                else:
+                    detections = parsed.get("predicted_classes", [])
+                self.qwen_classes = [
+                    d.get("class") or d.get("class_name", "")
+                    for d in detections
+                    if d.get("class") or d.get("class_name")
+                ]
+                print(f"[MultiLabel] qwen_classes: {self.qwen_classes}")
+                
             except (json.JSONDecodeError, KeyError):
                 self.qwen_classes = []
 
